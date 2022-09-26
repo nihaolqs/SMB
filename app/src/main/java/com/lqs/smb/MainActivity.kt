@@ -1,23 +1,19 @@
 package com.lqs.smb
 
+import android.content.Intent
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.os.Environment
+import android.provider.Settings
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.size
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
-import androidx.compose.material.Text
-import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import com.google.accompanist.coil.rememberCoilPainter
 import com.lqs.smb.ui.theme.SMBTheme
 
 class MainActivity : ComponentActivity() {
@@ -26,7 +22,18 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        viewModel.init()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            // 先判断有没有权限
+            if (Environment.isExternalStorageManager()) {
+                Toast.makeText(this, "Android VERSION  R OR ABOVE，HAVE MANAGE_EXTERNAL_STORAGE GRANTED!", Toast.LENGTH_LONG).show()
+            } else {
+                Toast.makeText(this, "Android VERSION  R OR ABOVE，NO MANAGE_EXTERNAL_STORAGE GRANTED!", Toast.LENGTH_LONG).show()
+                val intent = Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
+                intent.data = Uri.parse("package:" + this.packageName)
+                startActivityForResult(intent, 0)
+            }
+        }
+        viewModel.init(this)
         setContent {
             SMBTheme {
                 // A surface container using the 'background' color from the theme
@@ -34,32 +41,9 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
                 ) {
-                    Greeting("Android")
-
+                    UploadImagePage()
                 }
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String) {
-    Box() {
-        Text(text = "Hello $name!")
-        Image(
-            rememberCoilPainter("smb://10.123.60.74/Share/0.png"),
-            "",
-            modifier = Modifier.size(100.dp).background(
-                Color.Red
-            )
-        )
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun DefaultPreview() {
-    SMBTheme {
-        Greeting("Android")
     }
 }

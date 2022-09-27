@@ -13,6 +13,8 @@ import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
 import com.lqs.smb.ui.theme.SMBTheme
 
@@ -25,9 +27,17 @@ class MainActivity : ComponentActivity() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             // 先判断有没有权限
             if (Environment.isExternalStorageManager()) {
-                Toast.makeText(this, "Android VERSION  R OR ABOVE，HAVE MANAGE_EXTERNAL_STORAGE GRANTED!", Toast.LENGTH_LONG).show()
+                Toast.makeText(
+                    this,
+                    "Android VERSION  R OR ABOVE，HAVE MANAGE_EXTERNAL_STORAGE GRANTED!",
+                    Toast.LENGTH_LONG
+                ).show()
             } else {
-                Toast.makeText(this, "Android VERSION  R OR ABOVE，NO MANAGE_EXTERNAL_STORAGE GRANTED!", Toast.LENGTH_LONG).show()
+                Toast.makeText(
+                    this,
+                    "Android VERSION  R OR ABOVE，NO MANAGE_EXTERNAL_STORAGE GRANTED!",
+                    Toast.LENGTH_LONG
+                ).show()
                 val intent = Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
                 intent.data = Uri.parse("package:" + this.packageName)
                 startActivityForResult(intent, 0)
@@ -36,12 +46,17 @@ class MainActivity : ComponentActivity() {
         viewModel.init(this)
         setContent {
             SMBTheme {
+                val isConnected by viewModel.isConnected.observeAsState()
                 // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
                 ) {
-                    UploadImagePage()
+                    if (isConnected == true) {
+                        UploadImagePage()
+                    } else {
+                        ConnectionPage()
+                    }
                 }
             }
         }

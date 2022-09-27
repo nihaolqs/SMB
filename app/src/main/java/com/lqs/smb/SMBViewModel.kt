@@ -2,6 +2,7 @@ package com.lqs.smb
 
 import android.app.PendingIntent.getActivity
 import android.content.Context
+import android.content.SharedPreferences
 import android.database.Cursor
 import android.net.Uri
 import android.provider.MediaStore
@@ -34,7 +35,21 @@ import kotlin.concurrent.thread
  */
 class SMBViewModel : ViewModel() {
     var isInit = false
+    val isConnected by lazy { MutableLiveData(false) }
+    var sp: SharedPreferences? = null
+    var hostName: String = ""
+    var shareName: String = ""
+    var account: String = ""
+    var password: String = ""
+
     fun init(context: Context) {
+        if (sp == null) {
+            sp = context.getSharedPreferences("Connect", 0)
+            hostName = sp?.getString("hostName", "") ?: ""
+            shareName = sp?.getString("shareName", "") ?: ""
+            account = sp?.getString("account", "") ?: ""
+            password = sp?.getString("password", "") ?: ""
+        }
         if (!isInit) {
             isInit = true
             initShareImage()
@@ -45,6 +60,7 @@ class SMBViewModel : ViewModel() {
 
     private lateinit var session: Session
     private lateinit var connection: Connection
+
     val client by lazy {
         val config = SmbConfig.builder()
             .withTimeout(
@@ -61,21 +77,31 @@ class SMBViewModel : ViewModel() {
     }
 
     val shareImages by lazy { MutableLiveData<MutableList<String>>() }
+
     fun initShareImage() {
         thread {
             try {
-                val connection: Connection = client.connect("10.123.60.74")
+                val connection: Connection = client.connect(hostName)
                 this@SMBViewModel.connection = connection
                 // save the connection reference to be able to close it later manually
-                val ac = AuthenticationContext("Share", "Share".toCharArray(), "")
+                val ac = AuthenticationContext(account, password.toCharArray(), "")
                 val session: Session = connection.authenticate(ac)
                 this@SMBViewModel.session = session
-                (this@SMBViewModel.session.connectShare("Share") as DiskShare).use { share ->
+                (this@SMBViewModel.session.connectShare(shareName) as DiskShare).use { share ->
                     val list = share.list("").map { it.fileName }
                     shareImages.postValue(list.toMutableList())
                 }
+                isConnected.postValue(true)
+                sp?.edit()?.apply {
+                    putString("hostName", hostName)
+                    putString("shareName", shareName)
+                    putString("account", account)
+                    putString("password", password)
+                    apply()
+                }
             } catch (e: Exception) {
                 e.printStackTrace()
+                isConnected.postValue(false)
             }
         }
     }

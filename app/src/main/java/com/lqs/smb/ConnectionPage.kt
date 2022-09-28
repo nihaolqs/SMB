@@ -36,25 +36,21 @@ fun ConnectionPage() {
                 modifier = Modifier.fillMaxWidth(),
                 value = hostName,
                 onValueChange = { hostName = it },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 label = { Text("hostName") })
             OutlinedTextField(
                 modifier = Modifier.fillMaxWidth(),
                 value = shareName,
                 onValueChange = { shareName = it },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 label = { Text("共享名") })
             OutlinedTextField(
                 modifier = Modifier.fillMaxWidth(),
                 value = account,
                 onValueChange = { account = it },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 label = { Text("账户") })
             OutlinedTextField(
                 modifier = Modifier.fillMaxWidth(),
                 value = password,
                 onValueChange = { password = it },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 label = { Text("密码") })
             Spacer(modifier = Modifier.height(50.dp))
             Button(onClick = {
